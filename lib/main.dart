@@ -32,9 +32,14 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final JavascriptRuntime jsRunTime = getJavascriptRuntime();
   final _textController = TextEditingController();
+  final _heightField = TextEditingController();
+  final _widthField = TextEditingController();
+
   String raw = '';
   String? dropdownValue = 'QR Code';
+  String? _selectedDegree = '0';
   List<String> options = ['QR Code', 'Code128', 'Code39', 'EAN13', 'UPC'];
+  List<String> degress = ['0', '90', '180', '270'];
 
   @override
   Widget build(BuildContext context) {
@@ -94,12 +99,38 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  child: const Text('Rotation:'),
-                ),
+                    margin: const EdgeInsets.only(left: 8),
+                    child: Row(children: [
+                      const Text('Rotation:'),
+                    ])),
                 Container(
                   margin: const EdgeInsets.only(top: 16, left: 8),
-                  child: const Text('Scale (width * height)'),
+                  child: Row(
+                    children: [
+                      const Text('Scale (width * height): '),
+                      Container(
+                        margin: EdgeInsets.only(right: 5),
+                        height: 22,
+                        width: 50,
+                        child: TextField(
+                          controller: _heightField,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: 22,
+                        width: 50,
+                        child: TextField(
+                          controller: _widthField,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
                   margin: const EdgeInsets.only(top: 16, left: 8),
@@ -159,7 +190,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                   snapshot.data![0]
                                       .split('\n')[0]
                                       .startsWith('Error')) {
-                                return Text(snapshot.data![0].split('\n')[0]);
+                                return Center(
+                                    child: Text(
+                                  snapshot.data![0].split('\n')[0],
+                                  style: const TextStyle(color: Colors.red),
+                                ));
                               }
                               return const Text('Text');
                             },
