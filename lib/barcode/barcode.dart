@@ -35,6 +35,6 @@ class BarCode {
     final String funtionString = await rootBundle.loadString(uri);
     final jsResult =
         javascriptRuntime.evaluate("$funtionString      encode('$raw');");
-    return [jsResult.stringResult, raw];
+    return [jsResult.stringResult, raw, codeType];
   }
 }

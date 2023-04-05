@@ -1,7 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_js/flutter_js.dart';
 import 'package:fyp/barcode/barcode.dart';
 import 'package:fyp/utilty/barcode_painter.dart';
+import 'package:fyp/utilty/downloader.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,14 +36,21 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final JavascriptRuntime jsRunTime = getJavascriptRuntime();
   final _textController = TextEditingController();
-  final _heightField = TextEditingController();
-  final _widthField = TextEditingController();
+  final _heightField = TextEditingController(text: "117");
+  final _widthField = TextEditingController(text: "214");
+  final GlobalKey<_MyHomePageState> _paintKey = GlobalKey();
 
   String raw = '';
   String? dropdownValue = 'QR Code';
   String? _selectedDegree = '0';
   List<String> options = ['QR Code', 'Code128', 'Code39', 'EAN13', 'UPC'];
   List<String> degress = ['0', '90', '180', '270'];
+  Size size = Size.infinite;
+  Color barPickerColor = Colors.black; // initial color
+  Color barCurrentColor = Colors.black; // upda
+  Color bgPickerColor = Colors.white; // initial color
+  Color bgCurrentColor = Colors.white; // upda
+  bool haveCode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -49,15 +60,15 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Container(
           decoration: BoxDecoration(
               color: Colors.white, borderRadius: BorderRadius.circular(5.0)),
-          height: MediaQuery.of(context).size.height * .85,
+          height: MediaQuery.of(context).size.height * .9,
           width: MediaQuery.of(context).size.width * .9,
           child: Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView(
+              // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  margin: const EdgeInsets.only(top: 8, left: 8),
+                  margin: const EdgeInsets.only(left: 8),
                   child: const Text(
                     'Barcode Generator',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
@@ -101,7 +112,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 Container(
                     margin: const EdgeInsets.only(left: 8),
                     child: Row(children: [
-                      const Text('Rotation:'),
+                      const Padding(
+                        padding: EdgeInsets.only(right: 10.0),
+                        child: Text('Rotation:'),
+                      ),
+                      DropdownButton<String>(
+                        value: _selectedDegree,
+                        onChanged: (String? value) {
+                          setState(() {
+                            _selectedDegree = value;
+                          });
+                        },
+                        items: degress
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text("$value°",
+                                style: const TextStyle(fontSize: 13)),
+                          );
+                        }).toList(),
+                      )
                     ])),
                 Container(
                   margin: const EdgeInsets.only(top: 16, left: 8),
@@ -109,21 +139,24 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       const Text('Scale (width * height): '),
                       Container(
-                        margin: EdgeInsets.only(right: 5),
-                        height: 22,
+                        margin: const EdgeInsets.only(right: 5),
+                        height: 32,
                         width: 50,
                         child: TextField(
-                          controller: _heightField,
+                          style: const TextStyle(fontSize: 13),
+                          textAlignVertical: TextAlignVertical.center,
+                          controller: _widthField,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
                         ),
                       ),
-                      Container(
-                        height: 22,
+                      SizedBox(
+                        height: 32,
                         width: 50,
                         child: TextField(
-                          controller: _widthField,
+                          style: const TextStyle(fontSize: 13),
+                          controller: _heightField,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
@@ -134,7 +167,104 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Container(
                   margin: const EdgeInsets.only(top: 16, left: 8),
-                  child: const Text('Color:'),
+                  child: Row(
+                    children: [
+                      const Text('Color:'),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, right: 8),
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                fixedSize: Size(10, 20),
+                                backgroundColor: barCurrentColor),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Pick a color!'),
+                                    content: SingleChildScrollView(
+                                      child: ColorPicker(
+                                        pickerColor: barPickerColor,
+                                        onColorChanged: (Color color) {
+                                          setState(() {
+                                            barPickerColor = color;
+                                          });
+                                        },
+                                        pickerAreaHeightPercent: 0.8,
+                                      ),
+                                    ),
+                                    actions: <Widget>[
+                                      ElevatedButton(
+                                        child: const Text('CANCEL'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        child: const Text('OK'),
+                                        onPressed: () {
+                                          setState(() {
+                                            barCurrentColor = barPickerColor;
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text('')),
+                      ),
+                      const Text('Back: '),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                fixedSize: const Size(10.0, 20.0),
+                                backgroundColor: bgCurrentColor),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Pick a color!'),
+                                    content: SingleChildScrollView(
+                                      child: ColorPicker(
+                                        pickerColor: bgPickerColor,
+                                        onColorChanged: (Color color) {
+                                          setState(() {
+                                            bgPickerColor = color;
+                                          });
+                                        },
+                                        pickerAreaHeightPercent: 0.8,
+                                      ),
+                                    ),
+                                    actions: <Widget>[
+                                      ElevatedButton(
+                                        child: const Text('CANCEL'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        child: const Text('OK'),
+                                        onPressed: () {
+                                          setState(() {
+                                            bgCurrentColor = bgPickerColor;
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text('')),
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
                   margin: const EdgeInsets.only(top: 12, left: 8),
@@ -143,6 +273,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     width: MediaQuery.of(context).size.width,
                     child: TextField(
                       controller: _textController,
+                      textAlignVertical: TextAlignVertical.bottom,
                       decoration: const InputDecoration(
                         hintText: 'Enter text or url',
                         border: OutlineInputBorder(),
@@ -159,6 +290,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () {
                         setState(() {
                           raw = _textController.text;
+                          size = Size(double.parse(_widthField.text),
+                              double.parse(_heightField.text));
                         });
                       },
                       child: const Text('Generate Barcode'),
@@ -174,7 +307,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           margin: const EdgeInsets.only(top: 5, left: 8),
                           padding: const EdgeInsets.only(
                               left: 20, right: 20, top: 25, bottom: 36),
-                          height: 180,
+                          height: 220,
                           width: 300,
                           child: FutureBuilder(
                             future:
@@ -185,7 +318,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                   !snapshot.data![0]
                                       .split('\n')[0]
                                       .startsWith('Error')) {
-                                return BarcodePainter(snapshot.data ?? ['']);
+                                return Transform.rotate(
+                                  angle:
+                                      double.parse(_selectedDegree!) * pi / 180,
+                                  child: RepaintBoundary(
+                                    key: _paintKey,
+                                    child: BarcodePainter(snapshot.data ?? [''],
+                                        size, barCurrentColor, bgCurrentColor),
+                                  ),
+                                );
                               } else if (snapshot.hasData &&
                                   snapshot.data![0]
                                       .split('\n')[0]
@@ -201,7 +342,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                       )
-                    : Container()
+                    : Container(),
               ],
             ),
           ),
