@@ -3,9 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_js/flutter_js.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp/barcode/barcode.dart';
 import 'package:fyp/utilty/barcode_painter.dart';
 import 'package:fyp/utilty/downloader.dart';
+import 'package:provider/provider.dart';
+
+import 'model/button_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,12 +20,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Barcode Generator',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return ChangeNotifierProvider(
+      create: (context) => ButtonModel(),
+      child: MaterialApp(
+        title: 'Barcode Generator',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const MyHomePage(title: 'Barcode Generator'),
       ),
-      home: const MyHomePage(title: 'Barcode Generator'),
     );
   }
 }
@@ -50,10 +57,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Color barCurrentColor = Colors.black; // upda
   Color bgPickerColor = Colors.white; // initial color
   Color bgCurrentColor = Colors.white; // upda
-  bool haveCode = false;
 
   @override
   Widget build(BuildContext context) {
+    final buttonModel = Provider.of<ButtonModel>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFF3498DB),
       body: Center(
@@ -302,6 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ? Center(
                         child: Container(
                           decoration: BoxDecoration(
+                              color: bgCurrentColor,
                               border: Border.all(width: 1, color: Colors.grey),
                               borderRadius: BorderRadius.circular(3)),
                           margin: const EdgeInsets.only(top: 5, left: 8),
@@ -310,21 +319,22 @@ class _MyHomePageState extends State<MyHomePage> {
                           height: 220,
                           width: 300,
                           child: FutureBuilder(
-                            future:
-                                BarCode.encode(jsRunTime, dropdownValue!, raw),
+                            future: BarCode.encode(
+                                context, jsRunTime, dropdownValue!, raw),
                             builder: (BuildContext context,
                                 AsyncSnapshot<List<String>> snapshot) {
                               if (snapshot.hasData &&
                                   !snapshot.data![0]
                                       .split('\n')[0]
                                       .startsWith('Error')) {
-                                return Transform.rotate(
-                                  angle:
-                                      double.parse(_selectedDegree!) * pi / 180,
-                                  child: RepaintBoundary(
-                                    key: _paintKey,
+                                return RepaintBoundary(
+                                  key: _paintKey,
+                                  child: Transform.rotate(
+                                    angle: double.parse(_selectedDegree!) *
+                                        pi /
+                                        180,
                                     child: BarcodePainter(snapshot.data ?? [''],
-                                        size, barCurrentColor, bgCurrentColor),
+                                        size, barCurrentColor),
                                   ),
                                 );
                               } else if (snapshot.hasData &&
@@ -340,6 +350,26 @@ class _MyHomePageState extends State<MyHomePage> {
                               return const Text('Text');
                             },
                           ),
+                        ),
+                      )
+                    : Container(),
+                buttonModel.haveCode
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 10, left: 8.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            captureCanvas(_paintKey);
+                            Fluttertoast.showToast(
+                              msg: "Download sucessful!",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              timeInSecForIosWeb: 1,
+                              backgroundColor: Colors.grey[600],
+                              textColor: Colors.white,
+                              fontSize: 16.0,
+                            );
+                          },
+                          child: const Text('Download'),
                         ),
                       )
                     : Container(),

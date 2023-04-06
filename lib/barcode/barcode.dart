@@ -1,10 +1,11 @@
-import 'dart:ffi';
-
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_js/flutter_js.dart';
+import 'package:fyp/model/button_model.dart';
+import 'package:provider/provider.dart';
 
 class BarCode {
-  static Future<List<String>> encode(
+  static Future<List<String>> encode(BuildContext context,
       JavascriptRuntime javascriptRuntime, String codeType, String raw) async {
     bool isNumeric =
         raw.split('').every((char) => char.contains(RegExp(r'[0-9]')));
@@ -33,8 +34,21 @@ class BarCode {
     }
     final String uri = 'lib/assets/$codeType.js';
     final String funtionString = await rootBundle.loadString(uri);
-    final jsResult =
-        javascriptRuntime.evaluate("$funtionString      encode('$raw');");
+
+    final jsResult = codeType == 'qrcode'
+        ? javascriptRuntime.evaluate("$funtionString   QRCode.generate('$raw')")
+        : javascriptRuntime.evaluate("$funtionString      encode('$raw');");
+
+    if (jsResult.stringResult != '' &&
+        !jsResult.stringResult.startsWith('Error')) {
+      toggle(context);
+    }
+    // print(jsResult.stringResult);
     return [jsResult.stringResult, raw, codeType];
+  }
+
+  static void toggle(BuildContext context) {
+    final buttonModel = Provider.of<ButtonModel>(context, listen: false);
+    buttonModel.toggle();
   }
 }
