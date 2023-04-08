@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_js/flutter_js.dart';
@@ -43,8 +45,8 @@ class BarCode {
         !jsResult.stringResult.startsWith('Error')) {
       toggle(context);
     }
-    // print(jsResult.stringResult);
-    return [jsResult.stringResult, raw, codeType];
+    Map<String, dynamic> decode = jsonDecode(jsResult.stringResult);
+    return [decode['barcode'], decode['fullcode'], codeType];
   }
 
   static void toggle(BuildContext context) {

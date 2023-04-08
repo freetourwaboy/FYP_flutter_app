@@ -57,15 +57,16 @@ class Painter extends CustomPainter {
       93,
       94
     ];
+    final barWidth = sizePassed.width / input[0].length;
+
+    final barHeight = sizePassed.height;
+    final longBarHeight = sizePassed.height + 13;
     if (input[2] != 'qrcode') {
       canvas.drawRect(
           Rect.fromLTWH(0, 0, sizePassed.width, sizePassed.height), spacePaint);
 
       // Calculate the width and height of each bar
-      final barWidth = sizePassed.width / input[0].length;
 
-      final barHeight = sizePassed.height;
-      final longBarHeight = sizePassed.height + 13;
       // Iterate over the string and draw bars or spaces
       for (var i = 0; i < input[0].length; i++) {
         final xPos = i * barWidth;
@@ -107,25 +108,64 @@ class Painter extends CustomPainter {
       }
     }
 
-    var textPainter = TextPainter(
-        text: TextSpan(
-            text: input[1],
-            style: const TextStyle(fontSize: 13, color: Colors.red)),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr);
+    var textPainter;
+    var textOffset;
+    const init_x = -15.0;
+    if (input[2] == 'ean13') {
+      String t1 = input[1].substring(0, 1);
+      String t2 = input[1].substring(1, 7);
+      String t3 = input[1].substring(7);
+      textPainter = createTP(t1);
 
-    textPainter.layout(
-      minWidth: 0,
-      maxWidth: sizePassed.width,
-    );
-
-    var textOffset = Offset(
-        sizePassed.width / 2 - textPainter.width / 2, sizePassed.height + 12);
-    textPainter.paint(canvas, textOffset);
+      textOffset = Offset(init_x, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+      textPainter = createTP(t2);
+      textOffset = Offset(init_x + barWidth * 17, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+      textPainter = createTP(t3);
+      textOffset = Offset(init_x + barWidth * 63, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+    } else if (input[2] == 'upc') {
+      String t1 = input[1].substring(0, 1);
+      String t2 = input[1].substring(1, 6);
+      String t3 = input[1].substring(6, 11);
+      String t4 = input[1].substring(11);
+      textPainter = createTP(t1);
+      textOffset = Offset(init_x, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+      textPainter = createTP(t2);
+      textOffset = Offset(init_x + barWidth * 24, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+      textPainter = createTP(t3);
+      textOffset = Offset(init_x + barWidth * 62, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+      textPainter = createTP(t4);
+      textOffset = Offset(init_x + barWidth * 103, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+    } else {
+      textPainter = createTP(input[1]);
+      textOffset = Offset(
+          sizePassed.width / 2 - textPainter.width / 2, sizePassed.height + 2);
+      textPainter.paint(canvas, textOffset);
+    }
   }
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
+  }
+
+  TextPainter createTP(String text) {
+    var textPainter = TextPainter(
+        text: TextSpan(
+            text: text,
+            style: const TextStyle(fontSize: 20, color: Colors.red)),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr);
+    textPainter.layout(
+      minWidth: 0,
+      maxWidth: sizePassed.width,
+    );
+    return textPainter;
   }
 }
