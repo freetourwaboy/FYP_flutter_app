@@ -45,6 +45,9 @@ class BarCode {
         !jsResult.stringResult.startsWith('Error')) {
       toggle(context);
     }
+    if (jsResult.stringResult.startsWith('Error')) {
+      return [jsResult.stringResult, raw, codeType];
+    }
     Map<String, dynamic> decode = jsonDecode(jsResult.stringResult);
     return [decode['barcode'], decode['fullcode'], codeType];
   }

@@ -55,8 +55,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Size size = Size.infinite;
   Color barPickerColor = Colors.black; // initial color
   Color barCurrentColor = Colors.black; // upda
-  Color bgPickerColor = Colors.white; // initial color
-  Color bgCurrentColor = Colors.white; // upda
+  Color bgPickerColor = Colors.red; // initial color
+  Color bgCurrentColor = Colors.red; // upda
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   margin: const EdgeInsets.only(top: 16, left: 8),
                   child: Row(
                     children: [
-                      const Text('Color:'),
+                      const Text('Bar:'),
                       Padding(
                         padding: const EdgeInsets.only(left: 8, right: 8),
                         child: ElevatedButton(
@@ -224,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             },
                             child: const Text('')),
                       ),
-                      const Text('Back: '),
+                      const Text('Text: '),
                       Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: ElevatedButton(
@@ -310,13 +310,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     ? Center(
                         child: Container(
                           decoration: BoxDecoration(
-                              color: bgCurrentColor,
                               border: Border.all(width: 1, color: Colors.grey),
                               borderRadius: BorderRadius.circular(3)),
                           margin: const EdgeInsets.only(top: 5, left: 8),
                           padding: const EdgeInsets.only(
                               left: 20, right: 20, top: 25, bottom: 36),
-                          height: 220,
+                          height: 320,
                           width: 300,
                           child: FutureBuilder(
                             future: BarCode.encode(
@@ -334,7 +333,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         pi /
                                         180,
                                     child: BarcodePainter(snapshot.data ?? [''],
-                                        size, barCurrentColor),
+                                        size, barCurrentColor, bgCurrentColor),
                                   ),
                                 );
                               } else if (snapshot.hasData &&

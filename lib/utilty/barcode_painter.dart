@@ -7,12 +7,14 @@ class BarcodePainter extends StatelessWidget {
   final List<String> input;
   final Size size;
   final Color barColor;
+  final Color bgColor;
 
-  const BarcodePainter(this.input, this.size, this.barColor, {super.key});
+  const BarcodePainter(this.input, this.size, this.barColor, this.bgColor,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: Painter(input, size, barColor));
+    return CustomPaint(painter: Painter(input, size, barColor, bgColor));
   }
 }
 
@@ -20,8 +22,9 @@ class Painter extends CustomPainter {
   final List<String> input;
   final Size sizePassed;
   final Color barColor;
+  final Color bgColor;
 
-  Painter(this.input, this.sizePassed, this.barColor);
+  Painter(this.input, this.sizePassed, this.barColor, this.bgColor);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -158,8 +161,7 @@ class Painter extends CustomPainter {
   TextPainter createTP(String text) {
     var textPainter = TextPainter(
         text: TextSpan(
-            text: text,
-            style: const TextStyle(fontSize: 20, color: Colors.red)),
+            text: text, style: TextStyle(fontSize: 20, color: bgColor)),
         textAlign: TextAlign.center,
         textDirection: TextDirection.ltr);
     textPainter.layout(
