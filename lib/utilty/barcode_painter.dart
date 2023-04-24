@@ -145,7 +145,7 @@ class Painter extends CustomPainter {
       textPainter = createTP(t4);
       textOffset = Offset(init_x + barWidth * 103, sizePassed.height + 2);
       textPainter.paint(canvas, textOffset);
-    } else {
+    } else if (input[2] != 'qrcode') {
       textPainter = createTP(input[1]);
       textOffset = Offset(
           sizePassed.width / 2 - textPainter.width / 2, sizePassed.height + 2);

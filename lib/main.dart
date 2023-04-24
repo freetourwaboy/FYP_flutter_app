@@ -43,8 +43,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final JavascriptRuntime jsRunTime = getJavascriptRuntime();
   final _textController = TextEditingController();
-  final _heightField = TextEditingController(text: "117");
-  final _widthField = TextEditingController(text: "214");
+  var _heightField = TextEditingController(text: "117");
+  var _widthField = TextEditingController(text: "214");
   final GlobalKey<_MyHomePageState> _paintKey = GlobalKey();
 
   String raw = '';
@@ -298,8 +298,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () {
                         setState(() {
                           raw = _textController.text;
-                          size = Size(double.parse(_widthField.text),
-                              double.parse(_heightField.text));
+                          double width = double.parse(_widthField.text);
+                          double height = double.parse(_heightField.text);
+                          width = width > 250 ? 250 : width;
+                          width = width < 100 ? 100 : width;
+                          height = height > 250 ? 250 : height;
+                          height = height < 100 ? 100 : height;
+                          size = Size(width, height);
                         });
                       },
                       child: const Text('Generate Barcode'),
